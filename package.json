@@ -1,0 +1,16 @@
+{
+  "name": "musoplan-updated",
+  "version": "1.0.0",
+  "description": "Music Management Application",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "jest"
+  },
+  "dependencies": {
+    "prompt-sync": "^4.2.0"
+  },
+  "devDependencies": {
+    "jest": "^27.0.6"
+  }
+}
