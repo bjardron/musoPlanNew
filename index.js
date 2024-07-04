@@ -12,6 +12,7 @@ async function main() {
     try {
         await loadMusicians();
         await loadTroupes();
+        logger.info('Application started');
 
         while (true) {
             showMenu();
@@ -40,16 +41,20 @@ async function main() {
                         break;
                     case '7':
                         if (troupes.length > 0) {
-                            const troupe = troupes[0]; // For example, showing the first troupe
-                            console.log(provideSummaryDescriptionOfTroupe(troupe));
+                            const troupe = await selectTroupe(troupes);
+                            if (troupe) {
+                                console.log(provideSummaryDescriptionOfTroupe(troupe));
+                            }
                         } else {
                             console.log('No troupes available.');
                         }
                         break;
                     case '8':
                         if (troupes.length > 0) {
-                            const troupe = troupes[0]; // For example, showing the first troupe
-                            console.log(provideDetailedDescriptionOfTroupe(troupe));
+                            const troupe = await selectTroupe(troupes);
+                            if (troupe) {
+                                console.log(provideDetailedDescriptionOfTroupe(troupe));
+                            }
                         } else {
                             console.log('No troupes available.');
                         }
@@ -57,10 +62,12 @@ async function main() {
                     case '9':
                         await saveMusicians();
                         await saveTroupes();
+                        logger.info('Application shutting down');
                         exitProgram();
                         break;
                     default:
                         console.log('Invalid choice. Please try again.');
+                        logger.warn(`Invalid menu choice: ${choice}`);
                 }
             } catch (error) {
                 console.error('An error occurred:', error.message);
@@ -71,6 +78,21 @@ async function main() {
         console.error('Fatal error:', error.message);
         logger.error(`Fatal error in main: ${error.message}`);
         process.exit(1);
+    }
+}
+
+async function selectTroupe(troupes) {
+    console.log('Available Troupes:');
+    troupes.forEach((troupe, index) => {
+        console.log(`${index + 1}. ${troupe.name}`);
+    });
+
+    const troupeIndex = parseInt(prompt('Select a troupe (enter number): ')) - 1;
+    if (troupeIndex >= 0 && troupeIndex < troupes.length) {
+        return troupes[troupeIndex];
+    } else {
+        console.log('Invalid troupe selection.');
+        return null;
     }
 }
 

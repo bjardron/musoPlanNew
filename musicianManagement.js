@@ -1,69 +1,81 @@
-const prompt = require('prompt-sync')();
-const { Guitarist, Bassist, Percussionist, Flautist } = require('./objects.js');
-const { border } = require('./menuUtils.js');
+// musicianManagement.js
+const fs = require('fs').promises;
+const { getValidName, getValidNumber, getValidHourlyRate } = require('./utils');
+const { Guitarist, Bassist, Percussionist, Flautist } = require('./objects');
+const logger = require('./logger');
 
 let musicians = [];
 
+async function loadMusicians() {
+    try {
+        const data = await fs.readFile('musicians.json', 'utf8');
+        musicians = JSON.parse(data).map(m => {
+            switch (m.instrument) {
+                case 'Guitarist': return Object.assign(new Guitarist(), m);
+                case 'Bassist': return Object.assign(new Bassist(), m);
+                case 'Percussionist': return Object.assign(new Percussionist(), m);
+                case 'Flautist': return Object.assign(new Flautist(), m);
+                default: throw new Error(`Unknown instrument type: ${m.instrument}`);
+            }
+        });
+        logger.info(`Loaded ${musicians.length} musicians from file`);
+    } catch (error) {
+        if (error.code === 'ENOENT') {
+            logger.warn('No existing musicians data found. Starting with an empty list.');
+        } else {
+            logger.error(`Error loading musicians: ${error.message}`);
+        }
+    }
+}
+
+async function saveMusicians() {
+    try {
+        await fs.writeFile('musicians.json', JSON.stringify(musicians, null, 2));
+        logger.info(`Saved ${musicians.length} musicians to file`);
+    } catch (error) {
+        logger.error(`Error saving musicians: ${error.message}`);
+    }
+}
+
 function registerMusician() {
-  const name = getValidName();
-  const yearsPlaying = getValidNumber('Enter years playing: ');
-  const hourlyRate = getValidNumber('Enter hourly rate (minimum $50): ', 50);
+    const name = getValidName('Enter musician\'s name: ');
+    const yearsPlaying = getValidNumber('Enter years playing: ', 0, 100);
+    const hourlyRate = getValidHourlyRate('Enter hourly rate: ');
 
-  console.log(border);
-  console.log('\x1b[36m|     Available Instruments    |\x1b[0m');
-  console.log(border);
-  console.log('\x1b[32m| 1. 🎸 Guitarist               |\x1b[0m');
-  console.log('\x1b[33m| 2. 🎻 Bassist                 |\x1b[0m');
-  console.log('\x1b[34m| 3. 🥁 Percussionist           |\x1b[0m');
-  console.log('\x1b[35m| 4. 🎶 Flautist                |\x1b[0m');
-  console.log(border);
+    console.log('Select instrument:');
+    console.log('1. Guitarist');
+    console.log('2. Bassist');
+    console.log('3. Percussionist');
+    console.log('4. Flautist');
 
-  const musicianType = prompt('Select the type of instrumentalist (enter number): ');
-  let newMusician;
+    const instrumentChoice = getValidNumber('Enter your choice: ', 1, 4);
 
-  switch (musicianType) {
-    case '1':
-      const strings = prompt('Enter number of strings: ');
-      newMusician = new Guitarist(name, yearsPlaying, hourlyRate, strings);
-      break;
-    case '2':
-      newMusician = new Bassist(name, yearsPlaying, hourlyRate);
-      break;
-    case '3':
-      newMusician = new Percussionist(name, yearsPlaying, hourlyRate);
-      break;
-    case '4':
-      newMusician = new Flautist(name, yearsPlaying, hourlyRate);
-      break;
-    default:
-      console.log('Invalid selection.');
-      return;
-  }
+    let newMusician;
 
-  musicians.push(newMusician);
-  console.log(`${newMusician.constructor.name} registered successfully.`);
-}
-
-function getValidName() {
-  let name;
-  do {
-    name = prompt('Enter musician\'s name (3 to 30 characters): ');
-    if (name.length < 3 || name.length > 30) {
-      console.log('Name should be between 3 and 30 characters.');
+    switch (instrumentChoice) {
+        case 1:
+            const strings = getValidNumber('Enter number of strings: ', 4, 12);
+            newMusician = new Guitarist(name, yearsPlaying, hourlyRate, strings);
+            break;
+        case 2:
+            newMusician = new Bassist(name, yearsPlaying, hourlyRate);
+            break;
+        case 3:
+            newMusician = new Percussionist(name, yearsPlaying, hourlyRate);
+            break;
+        case 4:
+            newMusician = new Flautist(name, yearsPlaying, hourlyRate);
+            break;
     }
-  } while (name.length < 3 || name.length > 30);
-  return name;
+
+    musicians.push(newMusician);
+    logger.info(`Registered new ${newMusician.instrument}: ${name}`);
+    console.log(`${newMusician.instrument} registered successfully.`);
 }
 
-function getValidNumber(promptMessage, minimum = 0) {
-  let number;
-  do {
-    number = parseFloat(prompt(promptMessage));
-    if (isNaN(number) || number < minimum) {
-      console.log(`Please enter a valid number${minimum > 0 ? ` (minimum ${minimum})` : ''}.`);
-    }
-  } while (isNaN(number) || number < minimum);
-  return number;
-}
-
-module.exports = { registerMusician, musicians };
+module.exports = {
+    loadMusicians,
+    saveMusicians,
+    registerMusician,
+    musicians
+};
