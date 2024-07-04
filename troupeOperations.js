@@ -1,79 +1,110 @@
-// utils.js
+// troupeOperations.js
 
 const prompt = require('prompt-sync')();
 
-/**
- * Get valid input from the user based on a custom validator function.
- * @param {string} promptMessage - The message to display to the user.
- * @param {function} validator - A function that returns true if the input is valid.
- * @param {string} errorMessage - The message to display if the input is invalid.
- * @returns {string} The valid input from the user.
- */
-function getValidInput(promptMessage, validator, errorMessage) {
-    let input;
-    do {
-        input = prompt(promptMessage);
-        if (!validator(input)) {
-            console.log(errorMessage);
-        }
-    } while (!validator(input));
-    return input;
+function calculateCost(troupes) {
+    if (troupes.length === 0) {
+        console.log('No troupes available. Please create a troupe first.');
+        return;
+    }
+
+    console.log('Available Troupes:');
+    troupes.forEach((troupe, index) => {
+        console.log(`${index + 1}. ${troupe.name} (${troupe.genre})`);
+    });
+
+    const troupeIndex = parseInt(prompt('Select a troupe (enter number): ')) - 1;
+
+    if (troupeIndex < 0 || troupeIndex >= troupes.length) {
+        console.log('Invalid troupe selection.');
+        return;
+    }
+
+    const selectedTroupe = troupes[troupeIndex];
+    const duration = parseFloat(prompt('Enter performance duration in hours: '));
+
+    if (isNaN(duration) || duration <= 0) {
+        console.log('Invalid duration. Please enter a positive number.');
+        return;
+    }
+
+    const totalCost = selectedTroupe.members.reduce((sum, musician) => sum + musician.hourlyRate * duration, 0);
+
+    console.log(`The total cost for ${selectedTroupe.name} performing for ${duration} hours is $${totalCost.toFixed(2)}.`);
 }
 
-/**
- * Get a valid number input from the user within a specified range.
- * @param {string} promptMessage - The message to display to the user.
- * @param {number} min - The minimum acceptable value.
- * @param {number} max - The maximum acceptable value.
- * @returns {number} The valid number input from the user.
- */
-function getValidNumber(promptMessage, min, max) {
-    return parseInt(getValidInput(
-        promptMessage,
-        (input) => !isNaN(input) && Number(input) >= min && Number(input) <= max,
-        `Please enter a number between ${min} and ${max}.`
-    ));
+function provideSummaryDescriptionOfTroupe(troupes) {
+    if (troupes.length === 0) {
+        console.log('No troupes available. Please create a troupe first.');
+        return;
+    }
+
+    console.log('Available Troupes:');
+    troupes.forEach((troupe, index) => {
+        console.log(`${index + 1}. ${troupe.name} (${troupe.genre})`);
+    });
+
+    const troupeIndex = parseInt(prompt('Select a troupe (enter number): ')) - 1;
+
+    if (troupeIndex < 0 || troupeIndex >= troupes.length) {
+        console.log('Invalid troupe selection.');
+        return;
+    }
+
+    const selectedTroupe = troupes[troupeIndex];
+
+    console.log(`\nSummary of ${selectedTroupe.name}:`);
+    console.log(`Genre: ${selectedTroupe.genre}`);
+    console.log(`Number of members: ${selectedTroupe.members.length}`);
+
+    const instrumentCounts = selectedTroupe.members.reduce((counts, musician) => {
+        counts[musician.instrument] = (counts[musician.instrument] || 0) + 1;
+        return counts;
+    }, {});
+
+    console.log('Instruments:');
+    for (const [instrument, count] of Object.entries(instrumentCounts)) {
+        console.log(`  ${instrument}: ${count}`);
+    }
 }
 
-/**
- * Get a valid name input from the user.
- * @param {string} promptMessage - The message to display to the user.
- * @returns {string} The valid name input from the user.
- */
-function getValidName(promptMessage) {
-    return getValidInput(
-        promptMessage,
-        (input) => input.length >= 3 && input.length <= 30,
-        'Name should be between 3 and 30 characters.'
-    );
-}
+function provideDetailedDescriptionOfTroupe(troupes) {
+    if (troupes.length === 0) {
+        console.log('No troupes available. Please create a troupe first.');
+        return;
+    }
 
-/**
- * Get a valid hourly rate input from the user.
- * @param {string} promptMessage - The message to display to the user.
- * @returns {number} The valid hourly rate input from the user.
- */
-function getValidHourlyRate(promptMessage) {
-    return parseFloat(getValidInput(
-        promptMessage,
-        (input) => !isNaN(input) && Number(input) >= 50,
-        'Hourly rate should be a number and at least $50.'
-    ));
-}
+    console.log('Available Troupes:');
+    troupes.forEach((troupe, index) => {
+        console.log(`${index + 1}. ${troupe.name} (${troupe.genre})`);
+    });
 
-/**
- * Format currency to two decimal places.
- * @param {number} amount - The amount to format.
- * @returns {string} The formatted currency string.
- */
-function formatCurrency(amount) {
-    return `$${amount.toFixed(2)}`;
+    const troupeIndex = parseInt(prompt('Select a troupe (enter number): ')) - 1;
+
+    if (troupeIndex < 0 || troupeIndex >= troupes.length) {
+        console.log('Invalid troupe selection.');
+        return;
+    }
+
+    const selectedTroupe = troupes[troupeIndex];
+
+    console.log(`\nDetailed Description of ${selectedTroupe.name}:`);
+    console.log(`Genre: ${selectedTroupe.genre}`);
+    console.log(`Number of members: ${selectedTroupe.members.length}`);
+    console.log('\nMembers:');
+
+    selectedTroupe.members.forEach((musician, index) => {
+        console.log(`  ${index + 1}. ${musician.name}`);
+        console.log(`     Instrument: ${musician.instrument}`);
+        console.log(`     Years Playing: ${musician.yearsPlaying}`);
+        console.log(`     Hourly Rate: $${musician.hourlyRate}`);
+        console.log(`     Interesting Fact: ${musician.getInterestingFact()}`);
+        console.log();
+    });
 }
 
 module.exports = {
-    getValidInput,
-    getValidNumber,
-    getValidName,
-    getValidHourlyRate,
-    formatCurrency
+    calculateCost,
+    provideSummaryDescriptionOfTroupe,
+    provideDetailedDescriptionOfTroupe
 };

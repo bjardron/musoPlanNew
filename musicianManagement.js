@@ -1,60 +1,30 @@
 // musicianManagement.js
-const fs = require('fs').promises;
-const { getValidName, getValidNumber, getValidHourlyRate } = require('./utils');
+
+const prompt = require('prompt-sync')();
 const { Guitarist, Bassist, Percussionist, Flautist } = require('./objects');
-const logger = require('./logger');
+const { getInstrumentEmoji, border } = require('./menuUtils');
 
-let musicians = [];
+function registerMusician(musicians) {
+    const name = prompt('Enter musician\'s name: ');
+    const yearsPlaying = parseInt(prompt('Enter years playing: '));
+    const hourlyRate = parseFloat(prompt('Enter hourly rate: '));
 
-async function loadMusicians() {
-    try {
-        const data = await fs.readFile('musicians.json', 'utf8');
-        musicians = JSON.parse(data).map(m => {
-            switch (m.instrument) {
-                case 'Guitarist': return Object.assign(new Guitarist(), m);
-                case 'Bassist': return Object.assign(new Bassist(), m);
-                case 'Percussionist': return Object.assign(new Percussionist(), m);
-                case 'Flautist': return Object.assign(new Flautist(), m);
-                default: throw new Error(`Unknown instrument type: ${m.instrument}`);
-            }
-        });
-        logger.info(`Loaded ${musicians.length} musicians from file`);
-    } catch (error) {
-        if (error.code === 'ENOENT') {
-            logger.warn('No existing musicians data found. Starting with an empty list.');
-        } else {
-            logger.error(`Error loading musicians: ${error.message}`);
-        }
-    }
-}
+    console.log(border);
+    console.log('\x1b[36m|     Available Instruments    |\x1b[0m');
+    console.log(border);
+    console.log(`\x1b[32m| 1. ${getInstrumentEmoji('guitarist')} Guitarist               |\x1b[0m`);
+    console.log(`\x1b[33m| 2. ${getInstrumentEmoji('bassist')} Bassist                 |\x1b[0m`);
+    console.log(`\x1b[34m| 3. ${getInstrumentEmoji('percussionist')} Percussionist           |\x1b[0m`);
+    console.log(`\x1b[35m| 4. ${getInstrumentEmoji('flautist')} Flautist                |\x1b[0m`);
+    console.log(border);
 
-async function saveMusicians() {
-    try {
-        await fs.writeFile('musicians.json', JSON.stringify(musicians, null, 2));
-        logger.info(`Saved ${musicians.length} musicians to file`);
-    } catch (error) {
-        logger.error(`Error saving musicians: ${error.message}`);
-    }
-}
-
-function registerMusician() {
-    const name = getValidName('Enter musician\'s name: ');
-    const yearsPlaying = getValidNumber('Enter years playing: ', 0, 100);
-    const hourlyRate = getValidHourlyRate('Enter hourly rate: ');
-
-    console.log('Select instrument:');
-    console.log('1. Guitarist');
-    console.log('2. Bassist');
-    console.log('3. Percussionist');
-    console.log('4. Flautist');
-
-    const instrumentChoice = getValidNumber('Enter your choice: ', 1, 4);
+    const instrumentChoice = parseInt(prompt('Select the type of instrumentalist (enter number): '));
 
     let newMusician;
 
     switch (instrumentChoice) {
         case 1:
-            const strings = getValidNumber('Enter number of strings: ', 4, 12);
+            const strings = parseInt(prompt('Enter number of strings: '));
             newMusician = new Guitarist(name, yearsPlaying, hourlyRate, strings);
             break;
         case 2:
@@ -66,16 +36,15 @@ function registerMusician() {
         case 4:
             newMusician = new Flautist(name, yearsPlaying, hourlyRate);
             break;
+        default:
+            console.log('Invalid instrument choice.');
+            return;
     }
 
     musicians.push(newMusician);
-    logger.info(`Registered new ${newMusician.instrument}: ${name}`);
-    console.log(`${newMusician.instrument} registered successfully.`);
+    console.log(`${getInstrumentEmoji(newMusician.instrument)} ${newMusician.constructor.name} registered successfully.`);
 }
 
 module.exports = {
-    loadMusicians,
-    saveMusicians,
-    registerMusician,
-    musicians
+    registerMusician
 };

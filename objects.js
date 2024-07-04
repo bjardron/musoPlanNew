@@ -4,7 +4,7 @@ class Musician {
     constructor(name, yearsPlaying, hourlyRate, instrument) {
         this.name = name;
         this.yearsPlaying = yearsPlaying;
-        this.hourlyRate = hourlyRate < 50 ? 50 : hourlyRate; // Minimum rate of $50
+        this.hourlyRate = hourlyRate < 50 ? 50 : hourlyRate;
         this.instrument = instrument;
     }
 
@@ -62,18 +62,7 @@ class Troupe {
     }
 
     addMember(musician) {
-        if (!(musician instanceof Musician)) {
-            throw new Error("Can only add musicians to a troupe");
-        }
         this.members.push(musician);
-    }
-
-    getSize() {
-        return this.members.length;
-    }
-
-    getTotalCost(hours) {
-        return this.members.reduce((total, musician) => total + musician.hourlyRate * hours, 0);
     }
 }
 
